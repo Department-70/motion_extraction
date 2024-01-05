@@ -16,7 +16,6 @@ def process_video(input_video_path, output_video_path):
     # Define the codec and create VideoWriter object
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
-    prev_frame = None
     buffer = []
     shifted_buffer = []
 
@@ -36,18 +35,16 @@ def process_video(input_video_path, output_video_path):
         # Create an alpha channel with 50% opacity
         alpha_channel = np.ones((height, width), dtype=frame.dtype) * 127  # 50% of 255
         inverted_frame_with_alpha = cv2.merge((inverted_frame, alpha_channel))
+        blurred = cv2.blur(inverted_frame_with_alpha, (width,height))
 
 
         ## NEW
         shifted_buffer.append(inverted_frame_with_alpha)
         buffer.append(frame)
 
-        # Write the frame to the output video
-        #out.write(overlay_frame)
-
     # Define parameters
-    frame_pos = 1 # skip one frame to avoid out of bounds errors
-    SHIFT_OFFSET = 1
+    frame_pos = 2 # skip one frame to avoid out of bounds errors
+    SHIFT_OFFSET = 30
     MAX_FRAMES = len(buffer)
     ALPHA = 0.5
     BETA = 0.5
@@ -55,7 +52,7 @@ def process_video(input_video_path, output_video_path):
 
         print("PROCESSING IMAGE ", frame_pos)
         #sys.stdout.write("\033[f")
-        out.write(cv2.addWeighted(buffer[frame_pos], ALPHA, shifted_buffer[frame_pos - SHIFT_OFFSET][:, :, :3], BETA, 0))
+        out.write(cv2.addWeighted(buffer[frame_pos], ALPHA, shifted_buffer[2][:, :, :3], BETA, 0))
         frame_pos += 1
 
     # Release everything when done
@@ -67,4 +64,4 @@ def process_video(input_video_path, output_video_path):
     print(len(shifted_buffer))
 
 # Example usage
-process_video('trees.mp4', 'trees_edited.mp4')
+process_video('deer.mp4', 'deer_motion_extract.mp4')
