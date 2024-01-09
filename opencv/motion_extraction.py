@@ -22,8 +22,10 @@ def calculate_mae(prev_mask, curr_mask):
     # Convert images to numpy arrays for easier computation
     prev_array = np.array(prev_mask)
     curr_array = np.array(curr_mask)
+
     # Compute the absolute difference between the two masks
     absolute_diff = np.abs(prev_array - curr_array)
+
     # Calculate the mean absolute error (MAE)
     mae = np.mean(absolute_diff)
     return mae
@@ -32,6 +34,8 @@ def process_video(input_video_path, output_video_path):
 
     # Open the video
     cap = cv2.VideoCapture(input_video_path)
+    if not cap.isOpened():
+        cap.open()
     
     # Get video properties
     fps = cap.get(cv2.CAP_PROP_FPS)
@@ -46,7 +50,7 @@ def process_video(input_video_path, output_video_path):
     frame_number = 0
 
     while cap.isOpened():
-        print("Processing frame: ", frame_number)
+        #print("Processing frame: ", frame_number)
         frame_number += 1
         try:
             ret, frame = cap.read()
@@ -75,7 +79,7 @@ def process_video(input_video_path, output_video_path):
     # Define parameters
     frame_pos = 0 # skip one frame to avoid out of bounds errors
     SHIFT_OFFSET = 15
-    MAX_FRAMES = len(buffer)
+    MAX_FRAMES = 140
     ALPHA = 0.5
     BETA = 0.5
 
@@ -83,21 +87,22 @@ def process_video(input_video_path, output_video_path):
     mae = 0.
 
     # Print the details because something is weird.
-    print('NUMBER OF FRAMES: ', MAX_FRAMES)
+    print('RAW FRAMES: ', len(buffer))
+    print('MASK FRAMES: ', len(shifted_buffer))
     print('SHIFT OFFSET: ', SHIFT_OFFSET)
     print('ALPHA: ', ALPHA)
     print('BETA: ', BETA)
 
     while (frame_pos < MAX_FRAMES):
 
-        print("PROCESSING IMAGE ", frame_pos)
+        #print("PROCESSING IMAGE ", frame_pos)
         #sys.stdout.write("\033[f")
 
         std = buffer[frame_pos]
         mask = shifted_buffer[frame_pos - SHIFT_OFFSET][:, :, :3]
-        new_ssim = calculate_ssim(mask, std)
+        #new_ssim = calculate_ssim(mask, std)
         new_mae = calculate_mae(mask, std)
-        ssim += new_ssim
+        #ssim += new_ssim
         mae += new_mae
 
         out.write(cv2.addWeighted(std, ALPHA, mask, BETA, 0))
@@ -108,9 +113,12 @@ def process_video(input_video_path, output_video_path):
     out.release()
 
     ## NEW
-    print('SSIM Value: ', ssim/frame_pos)
-    print('MAE Value: ', mae/frame_pos)
+    print('SSIM Value: ', ssim / frame_pos)
+    print('MAE Value: ', mae / frame_pos)
 
 # Example usage
-FILE_NAME = 'rain4.m4v'
-process_video(FILE_NAME, 'extract_' + FILE_NAME)
+files = ['nothing.mp4', 'space_sounds.mp4', 'rain1.m4v', 'rain2.m4v', 'rain4.m4v', 'deer.mp4', 'fourth.mp4']
+for FILE_NAME in files:
+    print('PROCESSING FILE', FILE_NAME, '...')
+    process_video(FILE_NAME, 'extract_' + FILE_NAME)
+    print('')
