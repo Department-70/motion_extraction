@@ -77,9 +77,9 @@ def process_video(input_video_path, output_video_path):
         buffer.append(frame)
 
     # Define parameters
-    frame_pos = 0 # skip one frame to avoid out of bounds errors
-    SHIFT_OFFSET = 15
-    MAX_FRAMES = 140
+    frame_pos = 1 # skip one frame to avoid out of bounds errors
+    SHIFT_OFFSET = 0
+    MAX_FRAMES = len(buffer)
     ALPHA = 0.5
     BETA = 0.5
 
@@ -98,8 +98,8 @@ def process_video(input_video_path, output_video_path):
         #print("PROCESSING IMAGE ", frame_pos)
         #sys.stdout.write("\033[f")
 
-        std = buffer[frame_pos]
-        mask = shifted_buffer[frame_pos - SHIFT_OFFSET][:, :, :3]
+        std = buffer[0]
+        mask = shifted_buffer[SHIFT_OFFSET][:, :, :3]
         #new_ssim = calculate_ssim(mask, std)
         new_mae = calculate_mae(mask, std)
         #ssim += new_ssim
@@ -113,8 +113,8 @@ def process_video(input_video_path, output_video_path):
     out.release()
 
     ## NEW
-    print('SSIM Value: ', ssim / frame_pos)
-    print('MAE Value: ', mae / frame_pos)
+    print('SSIM Value: ', ssim / len(buffer))
+    print('MAE Value: ', mae / len(buffer))
 
 # Example usage
 files = ['nothing.mp4', 'space_sounds.mp4', 'rain1.m4v', 'rain2.m4v', 'rain4.m4v', 'deer.mp4', 'fourth.mp4']
